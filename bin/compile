@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -e
+
 arrow() {
     sed -u 's/^/-----> /'
 }
@@ -21,25 +23,16 @@ APP_BASE="$(cat "${ENV_DIR}/APP_BASE")"
 
 cd "${BUILD_DIR}"
 
-echo "Building Storybook" | arrow
+echo "Generating Storybook build" | arrow
 
 echo "Running lerna bootstrap for ${APP_BASE}" | indent
-lerna bootstrap --scope="${APP_BASE}" --include-filtered-dependencies | indent
-if [ $? -ne 0 ]; then
-  exit 1
-fi
+lerna bootstrap --scope="${APP_BASE}" --include-filtered-dependencies
 
 echo "Running lerna build for ${APP_BASE}" | indent
-lerna run build --scope="${APP_BASE}" --include-filtered-dependencies --stream | indent
-if [ $? -ne 0 ]; then
-    exit 1
-fi
+lerna run build --scope="${APP_BASE}" --include-filtered-dependencies --stream
 
-echo "Running build-storybook for ${APP_BASE}" | indent
-lerna run build-storybook --scope="${APP_BASE}" | indent
-if [ $? -ne 0 ]; then
-    exit 1
-fi
+echo "Running build-storybook for ${APP_BASE}"
+lerna run build-storybook --scope="${APP_BASE}" --stream
 
 echo "Copying static Storybook files to root" | arrow
 (
@@ -48,9 +41,4 @@ echo "Copying static Storybook files to root" | arrow
     mv "${STAGE}/storybook-static" "${BUILD_DIR}/build"
 )
 
-if [ $? -ne 0 ]; then
-    echo "FAILED to copy storybook build into root" | indent
-    exit 1
-else
-    echo "Copied storybook build for ${APP_BASE} to root of app successfully" | indent
-fi
+echo "Success!" | arrow
