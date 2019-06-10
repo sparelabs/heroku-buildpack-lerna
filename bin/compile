@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+arrow() {
+    sed -u 's/^/-----> /'
+}
+
 indent() {
     sed -u 's/^/      /'
 }
@@ -13,22 +17,40 @@ if [ ! -f "${ENV_DIR}/APP_BASE" ]; then
     exit 1
 fi
 
-cd "${BUILD_DIR}"
-lerna bootstrap --scope "${APP_BASE}"
-lerna run build --scope "${APP_BASE}" --include-filtered-dependencies --stream
-
 APP_BASE="$(cat "${ENV_DIR}/APP_BASE")"
 
-(
-    mv "${BUILD_DIR}/${APP_BASE}" "${STAGE}" &&
-    rm -rf "${BUILD_DIR}" &&
-    mv "${STAGE}/$(basename "$APP_BASE")" "${BUILD_DIR}"
-)
+cd "${BUILD_DIR}"
 
+echo "Building Storybook" | arrow
+
+echo "Running lerna bootstrap for ${APP_BASE}" | indent
+lerna bootstrap --scope="${APP_BASE}" --include-filtered-dependencies | indent
 if [ $? -ne 0 ]; then
-    echo "FAILED to copy directory into place" | indent
+  exit 1
+fi
+
+echo "Running lerna build for ${APP_BASE}" | indent
+lerna run build --scope="${APP_BASE}" --include-filtered-dependencies --stream | indent
+if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "Copied ${APP_BASE} to root of app successfully" | indent
+echo "Running build-storybook for ${APP_BASE}" | indent
+lerna run build-storybook --scope="${APP_BASE}" | indent
+if [ $? -ne 0 ]; then
+    exit 1
+fi
 
+echo "Copying static Storybook files to root" | arrow
+(
+    mv "${BUILD_DIR}/${APP_BASE}/storybook-static" "${STAGE}" &&
+    rm -rf "${BUILD_DIR}" &&
+    mv "${STAGE}/storybook-static" "${BUILD_DIR}/build"
+)
+
+if [ $? -ne 0 ]; then
+    echo "FAILED to copy storybook build into root" | indent
+    exit 1
+else
+    echo "Copied storybook build for ${APP_BASE} to root of app successfully" | indent
+fi
