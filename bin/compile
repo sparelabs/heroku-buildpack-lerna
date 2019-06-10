@@ -7,13 +7,16 @@ ENV_DIR=${3:-}
 BP_DIR=$(cd "$(dirname "${0:-}")"; cd ..; pwd)
 STAGE="$(mktemp -d)"
 
-# shellcheck source=lib/formatter.sh
-source "$BP_DIR/lib/formatter.sh"
+LOG_FILE=$(mktemp -t node-build-log.XXXXX)
+echo "" > "$LOG_FILE"
+
+# shellcheck source=lib/output.sh
+source "$BP_DIR/lib/output.sh"
 # shellcheck source=lib/monitor.sh
 source "$BP_DIR/lib/monitor.sh"
 
 if [ ! -f "${ENV_DIR}/APP_BASE" ]; then
-    echo "APP_BASE was not set. Aborting" | indent
+    error "APP_BASE was not set. Aborting"
     exit 1
 fi
 
@@ -21,22 +24,21 @@ APP_BASE="$(cat "${ENV_DIR}/APP_BASE")"
 
 cd "${BUILD_DIR}"
 
-echo "Generating Storybook build" | arrow
+header "Generating Storybook build" | output "$LOG_FILE"
 
-echo "Running lerna bootstrap for ${APP_BASE}" | indent
-lerna bootstrap --scope="${APP_BASE}" --include-filtered-dependencies
+info "Running lerna bootstrap for ${APP_BASE}"
+lerna bootstrap --scope="${APP_BASE}" --include-filtered-dependencies | output "$LOG_FILE"
 
-echo "Running lerna build for ${APP_BASE}" | indent
-lerna run build --scope="${APP_BASE}" --include-filtered-dependencies --stream
+info "Running lerna build for ${APP_BASE}"
+lerna run build --scope="${APP_BASE}" --include-filtered-dependencies --stream | output "$LOG_FILE"
 
-echo "Running build-storybook for ${APP_BASE}"
-lerna run build-storybook --scope="${APP_BASE}" --stream
+info "Running build-storybook for ${APP_BASE}"
+lerna run build-storybook --scope="${APP_BASE}" --stream | output "$LOG_FILE"
 
-echo "Copying static Storybook files to root" | arrow
-(
-    mv "${BUILD_DIR}/${APP_BASE}/storybook-static" "${STAGE}" &&
-    rm -rf "${BUILD_DIR}" &&
-    mv "${STAGE}/storybook-static" "${BUILD_DIR}/build"
-)
+header "Copying static Storybook files to root" | output "$LOG_FILE"
 
-echo "Success!" | arrow
+mv "${BUILD_DIR}/${APP_BASE}/storybook-static" "${STAGE}" &&
+rm -rf "${BUILD_DIR}" &&
+mv "${STAGE}/storybook-static" "${BUILD_DIR}/build"
+
+header "Success!" | output "$LOG_FILE"
