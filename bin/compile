@@ -1,18 +1,16 @@
 #!/usr/bin/env bash
 set -e
 
-arrow() {
-    sed -u 's/^/-----> /'
-}
-
-indent() {
-    sed -u 's/^/      /'
-}
-
-BUILD_DIR="$1"
-CACHE_DIR="$2"
-ENV_DIR="$3"
+BUILD_DIR=${1:-}
+CACHE_DIR=${2:-}
+ENV_DIR=${3:-}
+BP_DIR=$(cd "$(dirname "${0:-}")"; cd ..; pwd)
 STAGE="$(mktemp -d)"
+
+# shellcheck source=lib/formatter.sh
+source "$BP_DIR/lib/formatter.sh"
+# shellcheck source=lib/monitor.sh
+source "$BP_DIR/lib/monitor.sh"
 
 if [ ! -f "${ENV_DIR}/APP_BASE" ]; then
     echo "APP_BASE was not set. Aborting" | indent
