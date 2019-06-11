@@ -35,3 +35,11 @@ To deploy the storybook for `project0` in the above example, we need to:
 }
 ```
 4. Add this buildpack **after** [heroku-buildpack-nodejs](https://github.com/heroku/heroku-buildpack-nodejs) and **before** [heroku-buildpack-static](https://github.com/heroku/heroku-buildpack-static).
+
+### Troubleshooting
+If this buildpack is constantly crashing on the `build-storybook` step, try increasing memory for Node in your `build-storybook` script, eg.
+```
+"scripts": {
+  "build-storybook": "NODE_OPTIONS=--max_old_space_size=4096 build-storybook"
+}
+```
