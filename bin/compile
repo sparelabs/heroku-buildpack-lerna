@@ -28,29 +28,19 @@ header "Building storybook"
 lerna run build-storybook --scope="${APP_BASE}" --stream 2>&1 | output
 
 header "Copying static Storybook files to root"
-
 cd ../
-
-info "mv ${BUILD_DIR}/${APP_BASE}/storybook-static ${STAGE}"
 mv "${BUILD_DIR}/${APP_BASE}/storybook-static" "${STAGE}"
-
-info "rm -rf ${BUILD_DIR}"
 rm -rf "${BUILD_DIR}"
-
-info "mkdir -p ${BUILD_DIR}/build"
 mkdir -p "${BUILD_DIR}/build"
-
-info "mv ${STAGE}/storybook-static ${BUILD_DIR}/build"
 mv "${STAGE}/storybook-static" "${BUILD_DIR}/build"
 
-cd "${BUILD_DIR}"
 
 header "Generating static.json"
+cd "${BUILD_DIR}"
 if [ -f "static.json"]
 then
     info "Existing static.json found. Overwriting..."
 fi
-
 echo '{
   "root": "build/",
   "routes": {
