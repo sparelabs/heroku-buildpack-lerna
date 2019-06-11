@@ -4,14 +4,10 @@ set -e
 BUILD_DIR=${1:-}
 CACHE_DIR=${2:-}
 ENV_DIR=${3:-}
-BP_DIR=$(cd "$(dirname "${0:-}")"; cd ..; pwd)
+BUILDPACK_DIR=$(cd "$(dirname "${0:-}")"; cd ..; pwd)
 STAGE="$(mktemp -d)"
 
-LOG_FILE=$(mktemp -t node-build-log.XXXXX)
-echo "" > "$LOG_FILE"
-
-# shellcheck source=lib/output.sh
-source "$BP_DIR/lib/output.sh"
+source "$BUILDPACK_DIR/lib/output.sh"
 
 if [ ! -f "${ENV_DIR}/APP_BASE" ]; then
     error "APP_BASE was not set. Aborting"
@@ -22,29 +18,45 @@ APP_BASE="$(cat "${ENV_DIR}/APP_BASE")"
 
 cd "${BUILD_DIR}"
 
-header "Installing dependencies (lerna bootstrap)" | output "$LOG_FILE"
-lerna bootstrap --scope="${APP_BASE}" --include-filtered-dependencies 2>&1 | output "$LOG_FILE"
+header "Installing dependencies (lerna bootstrap)"
+lerna bootstrap --scope="${APP_BASE}" --include-filtered-dependencies 2>&1 | output
 
-header "Building ${APP_BASE} and its dependencies" | output "$LOG_FILE"
-lerna run build --scope="${APP_BASE}" --include-filtered-dependencies --stream 2>&1 | output "$LOG_FILE"
+header "Building ${APP_BASE} and its dependencies"
+lerna run build --scope="${APP_BASE}" --include-filtered-dependencies --stream 2>&1 | output
 
-header "Building storybook" | output "$LOG_FILE"
-lerna run build-storybook --scope="${APP_BASE}" --stream
+header "Building storybook"
+lerna run build-storybook --scope="${APP_BASE}" --stream 2>&1 | output
 
-header "Copying static Storybook files to root" | output "$LOG_FILE"
+header "Copying static Storybook files to root"
 
 cd ../
 
-info "mv ${BUILD_DIR}/${APP_BASE}/storybook-static ${STAGE}" | output "$LOG_FILE"
+info "mv ${BUILD_DIR}/${APP_BASE}/storybook-static ${STAGE}"
 mv "${BUILD_DIR}/${APP_BASE}/storybook-static" "${STAGE}"
 
-info "rm -rf ${BUILD_DIR}" | output "$LOG_FILE"
+info "rm -rf ${BUILD_DIR}"
 rm -rf "${BUILD_DIR}"
 
-info "mkdir -p ${BUILD_DIR}/build" | output "$LOG_FILE"
+info "mkdir -p ${BUILD_DIR}/build"
 mkdir -p "${BUILD_DIR}/build"
 
-info "mv ${STAGE}/storybook-static ${BUILD_DIR}/build" | output "$LOG_FILE"
+info "mv ${STAGE}/storybook-static ${BUILD_DIR}/build"
 mv "${STAGE}/storybook-static" "${BUILD_DIR}/build"
 
-header "Success!" | output "$LOG_FILE"
+cd "${BUILD_DIR}"
+
+header "Generating static.json"
+if [ -f "static.json"]
+then
+    info "Existing static.json found. Overwriting..."
+fi
+
+echo '{
+  "root": "build/",
+  "routes": {
+    "/**": "index.html"
+  },
+  "https_only": true
+}' > static.json
+
+header "Success!"

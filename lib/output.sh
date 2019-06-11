@@ -4,10 +4,8 @@ info() {
   echo "       $*" || true
 }
 
-# format output and send a copy to the log
+# format output
 output() {
-  local logfile="$1"
-
   while IFS= read -r LINE;
   do
     # do not indent headers that are being piped through the output
@@ -16,7 +14,6 @@ output() {
     else
       echo "       $LINE" || true
     fi
-    echo "$LINE" >> "$logfile" || true
   done
 }
 
