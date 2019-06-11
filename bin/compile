@@ -33,8 +33,18 @@ lerna run build-storybook --scope="${APP_BASE}" --stream
 
 header "Copying static Storybook files to root" | output "$LOG_FILE"
 
-mv "${BUILD_DIR}/${APP_BASE}/storybook-static" "${STAGE}" &&
-rm -rf "${BUILD_DIR}" &&
+cd ../
+
+info "mv ${BUILD_DIR}/${APP_BASE}/storybook-static ${STAGE}" | output "$LOG_FILE"
+mv "${BUILD_DIR}/${APP_BASE}/storybook-static" "${STAGE}"
+
+info "rm -rf ${BUILD_DIR}" | output "$LOG_FILE"
+rm -rf "${BUILD_DIR}"
+
+info "mkdir -p ${BUILD_DIR}/build" | output "$LOG_FILE"
+mkdir -p "${BUILD_DIR}/build"
+
+info "mv ${STAGE}/storybook-static ${BUILD_DIR}/build" | output "$LOG_FILE"
 mv "${STAGE}/storybook-static" "${BUILD_DIR}/build"
 
 header "Success!" | output "$LOG_FILE"
