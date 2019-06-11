@@ -37,7 +37,7 @@ mv "${STAGE}/storybook-static" "${BUILD_DIR}/build"
 
 header "Generating static.json"
 cd "${BUILD_DIR}"
-if [ -f "static.json"]; then
+if [ -f "static.json" ]; then
     info "Existing static.json found. Overwriting..."
 fi
 echo '{
