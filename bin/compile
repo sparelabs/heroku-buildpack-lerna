@@ -24,15 +24,12 @@ lerna bootstrap --scope="${APP_BASE}" --include-filtered-dependencies 2>&1 | out
 header "Building ${APP_BASE} and its dependencies"
 lerna run build --scope="${APP_BASE}" --include-filtered-dependencies --stream 2>&1 | output
 
-header "Building storybook"
-lerna run build-storybook --scope="${APP_BASE}" --stream 2>&1 | output
-
 header "Copying static Storybook files to root"
 cd ../
-mv "${BUILD_DIR}/${APP_BASE}/storybook-static" "${STAGE}"
+mv "${BUILD_DIR}/${APP_BASE}/build" "${STAGE}"
 rm -rf "${BUILD_DIR}"
 mkdir "${BUILD_DIR}"
-mv "${STAGE}/storybook-static" "${BUILD_DIR}/build"
+mv "${STAGE}/build" "${BUILD_DIR}/build"
 
 
 header "Generating static.json"
