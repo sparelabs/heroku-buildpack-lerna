@@ -24,7 +24,7 @@ lerna bootstrap --scope="${APP_BASE}" --include-filtered-dependencies 2>&1 | out
 header "Building ${APP_BASE} and its dependencies"
 lerna run build --scope="${APP_BASE}" --include-filtered-dependencies --stream 2>&1 | output
 
-header "Copying static Storybook files to root"
+header "Copying static files to root"
 cd ../
 mv "${BUILD_DIR}/${APP_BASE}/build" "${STAGE}"
 rm -rf "${BUILD_DIR}"
