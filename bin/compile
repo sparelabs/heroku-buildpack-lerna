@@ -16,6 +16,8 @@ fi
 
 APP_BASE="$(cat "${ENV_DIR}/APP_BASE")"
 
+npm install -g lerna
+
 cd "${BUILD_DIR}"
 
 header "Installing dependencies (lerna bootstrap)"
